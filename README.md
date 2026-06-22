@@ -2,9 +2,6 @@
 
 AI-powered mock interview platform built to help students and job seekers practice interviews, receive structured question sets, and track progress through analytics.
 
-Live Demo: [Add Vercel URL]
-Backend API: [Add Render URL]
-
 ---
 
 ## Overview
