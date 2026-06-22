@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-dark-50 text-dark-900 font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  /* ── Skeleton loader ── */
+  .skeleton {
+    @apply bg-dark-200 rounded-lg overflow-hidden relative;
+    background: linear-gradient(
+      90deg,
+      theme('colors.dark.200') 25%,
+      theme('colors.dark.100') 50%,
+      theme('colors.dark.200') 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s linear infinite;
+  }
+
+  /* ── Score ring ── */
+  .score-ring {
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+  }
+
+  /* ── Focus ring ── */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2;
+  }
+
+  /* ── Card base ── */
+  .card {
+    @apply bg-white rounded-2xl border border-dark-200 shadow-sm;
+  }
+
+  /* ── Btn base ── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all duration-200 focus-ring disabled:opacity-50 disabled:cursor-not-allowed select-none;
+  }
+
+  .btn-primary {
+    @apply btn bg-dark-900 text-white hover:bg-dark-700 active:scale-[0.98] px-5 py-2.5 text-sm;
+  }
+
+  .btn-secondary {
+    @apply btn bg-white text-dark-900 border border-dark-300 hover:bg-dark-50 active:scale-[0.98] px-5 py-2.5 text-sm;
+  }
+
+  .btn-ghost {
+    @apply btn text-dark-600 hover:text-dark-900 hover:bg-dark-100 active:scale-[0.98] px-3 py-2 text-sm;
+  }
+
+  /* ── Input base ── */
+  .input {
+    @apply w-full rounded-xl border border-dark-300 bg-white px-4 py-2.5 text-sm text-dark-900 placeholder:text-dark-400 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent;
+  }
+
+  .input-error {
+    @apply border-red-400 focus:ring-red-400;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
