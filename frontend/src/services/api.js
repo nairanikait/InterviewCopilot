@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL + '/api';
+const BASE_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  withCredentials: false,
+  withCredentials: true,
 });
 
 // ── Request interceptor: attach JWT ──────────────────────────────────────────
@@ -49,7 +49,7 @@ api.interceptors.response.use(
 // POST /api/auth/login     → { token, user: { id, name, email } }
 export const authService = {
   register: (data) => api.post('/auth/register', data),
-  login:    (data) => api.post('/auth/login', data),
+  login: (data) => api.post('/auth/login', data),
 };
 
 // ── Resume ───────────────────────────────────────────────────────────────────
@@ -74,7 +74,7 @@ export const resumeService = {
 //   body: { sessionId: string, answers: [{ questionIndex: number, answer: string }] }
 //   → { sessionId, status, overallScore, overallFeedback, questions: [...] }
 export const interviewService = {
-  start:    (data) => api.post('/interview/start', data),
+  start: (data) => api.post('/interview/start', data),
   evaluate: (data) => api.post('/interview/evaluate', data),
 };
 
