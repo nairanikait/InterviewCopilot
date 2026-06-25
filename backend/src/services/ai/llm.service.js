@@ -13,39 +13,62 @@ const LLM_API_KEY = process.env.LLM_API_KEY;
 const LLM_MODEL = process.env.LLM_MODEL || 'google/gemini-2.5-flash';
 const LLM_BASE_URL = process.env.LLM_BASE_URL || 'https://openrouter.ai/api/v1/chat/completions';
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 /**
  * Low-level helper — sends a prompt and returns the text response.
+ * Includes exactly one retry with a 2s delay.
  * @param {string} prompt
+ * @param {number} retries
  * @returns {Promise<string>}
  */
-const callLLM = async (prompt) => {
+const callLLM = async (prompt, retries = 1) => {
   if (!LLM_API_KEY) {
     throw new Error('LLM_API_KEY is not configured.');
   }
 
-  const response = await fetch(LLM_BASE_URL, {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${LLM_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: LLM_MODEL,
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7,
-      max_tokens: 2048,
-    }),
-  });
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`LLM API error (${response.status}): ${error}`);
+    const response = await fetch(LLM_BASE_URL, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${LLM_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: LLM_MODEL,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7,
+        max_tokens: 2048,
+      }),
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      console.error(`[LLM API Error] Provider status code: ${response.status}`);
+      throw new Error(`LLM API error (${response.status})`);
+    }
+
+    const data = await response.json();
+    const text = data?.choices?.[0]?.message?.content;
+    if (!text) throw new Error('Empty response from LLM API.');
+    return text.trim();
+  } catch (err) {
+    if (retries > 0) {
+      console.warn(`[LLM API Warning] Call failed, retrying in 2000ms...`);
+      await sleep(2000);
+      return callLLM(prompt, retries - 1);
+    }
+    
+    const customError = new Error('Question generation temporarily unavailable');
+    customError.code = 'AI_UNAVAILABLE';
+    customError.statusCode = 503;
+    throw customError;
   }
-
-  const data = await response.json();
-  const text = data?.choices?.[0]?.message?.content;
-  if (!text) throw new Error('Empty response from LLM API.');
-  return text.trim();
 };
 
 /**

@@ -8,11 +8,13 @@ import { useState, useRef, useCallback } from 'react';
 export function useAsync() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [errorCode, setErrorCode] = useState(null);
 
   // Use a ref so the function identity never changes between renders
   const runRef = useRef(async (asyncFn) => {
     setLoading(true);
     setError(null);
+    setErrorCode(null);
     try {
       const result = await asyncFn();
       return result;
@@ -22,6 +24,7 @@ export function useAsync() {
         err?.message ||
         'Something went wrong. Please try again.';
       setError(message);
+      setErrorCode(err?.response?.data?.code || null);
       throw err;
     } finally {
       setLoading(false);
@@ -31,5 +34,5 @@ export function useAsync() {
   // Stable wrapper so consumers can destructure `run` safely
   const run = useCallback((...args) => runRef.current(...args), []);
 
-  return { loading, error, run, setError };
+  return { loading, error, errorCode, run, setError, setErrorCode };
 }

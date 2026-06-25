@@ -16,8 +16,8 @@ function countWords(text) {
  */
 export default function Interview() {
   const navigate = useNavigate();
-  const { loading: starting, error: startError, run: runStart } = useAsync();
-  const { loading: submitting, error: submitError, run: runSubmit } = useAsync();
+  const { loading: starting, error: startError, errorCode: startErrorCode, run: runStart } = useAsync();
+  const { loading: submitting, error: submitError, errorCode: submitErrorCode, run: runSubmit } = useAsync();
 
   // Session state
   const [sessionId, setSessionId] = useState(null);
@@ -117,6 +117,42 @@ export default function Interview() {
     );
   }
 
+  // ── Error Recovery state ──────────────────────────────────────────────
+  if (startErrorCode === 'AI_UNAVAILABLE' || submitErrorCode === 'AI_UNAVAILABLE') {
+    return (
+      <div className="fixed inset-0 bg-white flex items-center justify-center">
+        <div className="text-center space-y-6 max-w-sm px-6 animate-fade-in">
+          <div className="h-20 w-20 rounded-full bg-red-100 flex items-center justify-center mx-auto">
+             <svg className="h-10 w-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+             </svg>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-dark-900">Question generation temporarily unavailable</h2>
+            <p className="text-sm text-dark-500 mt-2">AI interview generation is currently unavailable.<br/>Please try again in a few minutes.</p>
+          </div>
+          <div className="space-y-3">
+            <Button
+              variant="primary"
+              className="w-full py-3"
+              loading={starting || submitting}
+              onClick={startErrorCode === 'AI_UNAVAILABLE' ? handleStart : handleNext}
+            >
+              Retry
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full py-3"
+              onClick={() => navigate('/dashboard')}
+            >
+              Return to Dashboard
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ── Setup screen (before starting) ──────────────────────────────────
   if (!started) {
     return (
@@ -142,7 +178,7 @@ export default function Interview() {
             <p className="text-sm text-dark-500 mt-1">Configure your mock interview before starting.</p>
           </div>
 
-          {startError && <Alert variant="error">{startError}</Alert>}
+          {startError && startErrorCode !== 'AI_UNAVAILABLE' && <Alert variant="error">{startError}</Alert>}
 
           {/* Guard: resume must be uploaded first */}
           {!resumeId && (
@@ -198,10 +234,10 @@ export default function Interview() {
             variant="primary"
             className="w-full py-3"
             loading={starting}
-            disabled={!resumeId}
+            disabled={!resumeId || starting}
             onClick={handleStart}
           >
-            Start Interview
+            {starting ? 'Generating interview…' : 'Start Interview'}
           </Button>
         </div>
       </div>
@@ -247,7 +283,7 @@ export default function Interview() {
 
       {/* Question */}
       <div className="flex-1 flex flex-col max-w-3xl mx-auto w-full px-6 pb-4 overflow-y-auto">
-        {submitError && <Alert variant="error">{submitError}</Alert>}
+        {submitError && submitErrorCode !== 'AI_UNAVAILABLE' && <Alert variant="error">{submitError}</Alert>}
 
         <div className="text-center space-y-3 py-8">
           <blockquote className="text-2xl font-bold text-dark-900 leading-tight text-balance">
